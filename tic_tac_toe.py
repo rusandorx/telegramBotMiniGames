@@ -6,9 +6,9 @@ async def tic_tac_toe(update, context):
     context.user_data["game"] = ["tic_tac_toe"]
     s = [["  ", "  ", "  "], ["  ", "  ", "  "], ["  ", "  ", "  "]]
     context.user_data["game"].append(s)
-    tic_tac_toe_field_keyboard = [["/1_1  ", "/1_2  ", "/1_3  "],
-                                  ["/2_1  ", "/2_2  ", "/2_3  "],
-                                  ["/3_1  ", "/3_2  ", "/3_3  "]]
+    tic_tac_toe_field_keyboard = [["1_1  ", "1_2  ", "1_3  "],
+                                  ["2_1  ", "2_2  ", "2_3  "],
+                                  ["3_1  ", "3_2  ", "3_3  "]]
     tic_tac_toe_markup = ReplyKeyboardMarkup(tic_tac_toe_field_keyboard, one_time_keyboard=True)
     board(s, update.message.from_user)
     await context.bot.send_photo(

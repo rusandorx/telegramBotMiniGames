@@ -1,10 +1,12 @@
 import logging
-from telegram import ReplyKeyboardMarkup
-from telegram.ext import CommandHandler
-from telegram.ext import Application, MessageHandler, filters, ConversationHandler
-
-from tic_tac_toe import tic_tac_toe, check_end_of_tic_tac_toe, board
 from random import randint
+
+from telegram import ReplyKeyboardMarkup
+from telegram.ext import Application, MessageHandler, filters, ConversationHandler
+from telegram.ext import CommandHandler
+
+from config import BOT_TOKEN
+from tic_tac_toe import tic_tac_toe, check_end_of_tic_tac_toe, board
 from wordle import wordle, wordle_answer, wordle_difficulty
 
 logging.basicConfig(
@@ -29,7 +31,7 @@ async def mini_games(update, context):
     if context.user_data["game"][0] == "tic_tac_toe":
         field = context.user_data["game"][1]
         try:
-            text = text[1:4].split("_")
+            text = text[0:3].split("_")
             if field[int(text[0]) - 1][int(text[1]) - 1] == "  ":
                 field[int(text[0]) - 1][int(text[1]) - 1] = "x"
             else:
@@ -38,9 +40,9 @@ async def mini_games(update, context):
         except Exception:
             await update.message.reply_text("Вы ввели поле в неправильном формате или поле уже занято")
             return 0
-        tic_tac_toe_field_keyboard = [[f"/1_1 {field[0][0]}", f"/1_2 {field[0][1]}", f"/1_3 {field[0][2]}"],
-                                      [f"/2_1 {field[1][0]}", f"/2_2 {field[1][1]}", f"/2_3 {field[1][2]}"],
-                                      [f"/3_1 {field[2][0]}", f"/3_2 {field[2][1]}", f"/3_3 {field[2][2]}"]]
+        tic_tac_toe_field_keyboard = [[f"1_1 {field[0][0]}", f"1_2 {field[0][1]}", f"1_3 {field[0][2]}"],
+                                      [f"2_1 {field[1][0]}", f"2_2 {field[1][1]}", f"2_3 {field[1][2]}"],
+                                      [f"3_1 {field[2][0]}", f"3_2 {field[2][1]}", f"3_3 {field[2][2]}"]]
         tic_tac_toe_markup = ReplyKeyboardMarkup(tic_tac_toe_field_keyboard,
                                                  one_time_keyboard=True)
         await update.message.reply_text("Ваш ход",
@@ -83,7 +85,7 @@ async def mini_games(update, context):
 
 
 def main():
-    application = Application.builder().token("6183870254:AAH2HrtJcJaeD_3wQBso2WeFrTWZTlvNja4").build()
+    application = Application.builder().token(BOT_TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("tic_tac_toe", tic_tac_toe))
     application.add_handler(ConversationHandler(
@@ -95,7 +97,7 @@ def main():
         },
         fallbacks=[]
     ))
-    text_handler = MessageHandler(filters.TEXT, mini_games)
+    text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, mini_games)
     application.add_handler(text_handler)
     application.run_polling()
 
