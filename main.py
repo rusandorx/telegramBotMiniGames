@@ -7,7 +7,7 @@ from telegram.ext import CommandHandler
 
 from config import BOT_TOKEN
 from tic_tac_toe import tic_tac_toe, check_end_of_tic_tac_toe, board
-from wordle import wordle, wordle_answer, wordle_difficulty
+from wordle import wordle, wordle_answer, wordle_difficulty, wordle_exit
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
@@ -95,7 +95,7 @@ def main():
             1: [MessageHandler(filters.TEXT & ~filters.COMMAND, wordle_difficulty)],
             2: [MessageHandler(filters.TEXT & ~filters.COMMAND, wordle_answer)]
         },
-        fallbacks=[]
+        fallbacks=[CommandHandler('exit', wordle_exit)]
     ))
     text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, mini_games)
     application.add_handler(text_handler)
