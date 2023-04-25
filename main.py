@@ -6,7 +6,7 @@ from telegram.ext import CommandHandler
 
 from config import BOT_TOKEN
 from tic_tac_toe import tic_tac_toe, check_end_of_tic_tac_toe, board
-from wordle import wordle, wordle_answer
+from wordle import wordle, wordle_answer, wordle_difficulty
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
@@ -65,7 +65,8 @@ def main():
         entry_points=[CommandHandler('wordle', wordle)],
 
         states={
-            1: [MessageHandler(filters.TEXT & ~filters.COMMAND, wordle_answer)]
+            1: [MessageHandler(filters.TEXT & ~filters.COMMAND, wordle_difficulty)],
+            2: [MessageHandler(filters.TEXT & ~filters.COMMAND, wordle_answer)]
         },
         fallbacks=[]
     ))
