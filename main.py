@@ -1,10 +1,11 @@
 import logging
 from telegram import ReplyKeyboardMarkup
-from telegram.ext import Application, MessageHandler, filters
 from telegram.ext import CommandHandler
+from telegram.ext import Application, MessageHandler, filters, ConversationHandler
 
 from tic_tac_toe import tic_tac_toe, check_end_of_tic_tac_toe, board
 from random import randint
+from wordle import wordle, wordle_answer, wordle_difficulty
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
@@ -12,7 +13,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-start_keyboard = [['/tic_tac_toe Крестики нолики']]
+start_keyboard = [['/tic_tac_toe Крестики нолики', '/wordle Wordle']]
 start_markup = ReplyKeyboardMarkup(start_keyboard, one_time_keyboard=True)
 
 
@@ -22,6 +23,8 @@ async def start(update, context):
 
 
 async def mini_games(update, context):
+    if 'game' not in context.user_data:
+        return
     text = update.message.text
     if context.user_data["game"][0] == "tic_tac_toe":
         field = context.user_data["game"][1]
@@ -83,6 +86,15 @@ def main():
     application = Application.builder().token("6183870254:AAH2HrtJcJaeD_3wQBso2WeFrTWZTlvNja4").build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("tic_tac_toe", tic_tac_toe))
+    application.add_handler(ConversationHandler(
+        entry_points=[CommandHandler('wordle', wordle)],
+
+        states={
+            1: [MessageHandler(filters.TEXT & ~filters.COMMAND, wordle_difficulty)],
+            2: [MessageHandler(filters.TEXT & ~filters.COMMAND, wordle_answer)]
+        },
+        fallbacks=[]
+    ))
     text_handler = MessageHandler(filters.TEXT, mini_games)
     application.add_handler(text_handler)
     application.run_polling()
