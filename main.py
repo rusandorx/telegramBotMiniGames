@@ -1,10 +1,12 @@
 import logging
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
-from telegram.ext import Application, MessageHandler, filters, CallbackContext
-from telegram.ext import CommandHandler
-from random import randint
 
-from tg.tic_tac_toe import tic_tac_toe, check_end_of_tic_tac_toe, board
+from telegram import ReplyKeyboardMarkup
+from telegram.ext import Application, MessageHandler, filters, ConversationHandler
+from telegram.ext import CommandHandler
+
+from config import BOT_TOKEN
+from tic_tac_toe import tic_tac_toe, check_end_of_tic_tac_toe, board
+from wordle import wordle, wordle_answer
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
@@ -12,7 +14,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-start_keyboard = [['/tic_tac_toe Крестики нолики']]
+start_keyboard = [['/tic_tac_toe Крестики нолики', '/wordle Wordle']]
 start_markup = ReplyKeyboardMarkup(start_keyboard, one_time_keyboard=True)
 
 
@@ -23,6 +25,8 @@ async def start(update, context):
 
 async def mini_games(update, context):
     text = update.message.text
+    if 'game' not in context.user_data:
+        return
     if context.user_data["game"][0] == "tic_tac_toe":
         field = context.user_data["game"][1]
         tic_tac_toe_field_keyboard = [[f"/1_1 {field[0][0]}", f"/1_2 {field[0][1]}", f"/1_3 {field[0][2]}"],
@@ -52,10 +56,20 @@ async def mini_games(update, context):
 
 
 def main():
-    application = Application.builder().token("6183870254:AAH2HrtJcJaeD_3wQBso2WeFrTWZTlvNja4").build()
+    application = Application.builder().token(BOT_TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("tic_tac_toe", tic_tac_toe))
-    text_handler = MessageHandler(filters.TEXT, mini_games)
+    text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, mini_games)
+
+    application.add_handler(ConversationHandler(
+        entry_points=[CommandHandler('wordle', wordle)],
+
+        states={
+            1: [MessageHandler(filters.TEXT & ~filters.COMMAND, wordle_answer)]
+        },
+        fallbacks=[]
+    ))
+
     application.add_handler(text_handler)
     application.run_polling()
 
