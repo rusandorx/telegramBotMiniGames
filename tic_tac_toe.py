@@ -13,7 +13,7 @@ async def tic_tac_toe(update, context):
     board(s, update.message.from_user)
     await context.bot.send_photo(
         update.message.chat_id,
-        "res.png",
+        f"{update.message.from_user}.png",
         caption='Вы играете крестиками, а бот ноликами.'
     )
     await update.message.reply_text("Ваш ход",
