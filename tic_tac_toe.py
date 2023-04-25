@@ -10,11 +10,14 @@ async def tic_tac_toe(update, context):
                                   ["/2_1  ", "/2_2  ", "/2_3  "],
                                   ["/3_1  ", "/3_2  ", "/3_3  "]]
     tic_tac_toe_markup = ReplyKeyboardMarkup(tic_tac_toe_field_keyboard, one_time_keyboard=True)
-    await update.message.reply_text(f"|{s[0][0]}|{s[0][1]}|{s[0][2]}|\n"
-                                    f"|{s[1][0]}|{s[1][1]}|{s[1][2]}|\n"
-                                    f"|{s[2][0]}|{s[2][1]}|{s[2][2]}|\nВы играете крестиками, а бот ноликами.",
+    board(s, update.message.from_user)
+    await context.bot.send_photo(
+        update.message.chat_id,
+        f"{update.message.from_user}.png",
+        caption='Вы играете крестиками, а бот ноликами.'
+    )
+    await update.message.reply_text("Ваш ход",
                                     reply_markup=tic_tac_toe_markup)
-    await update.message.reply_text("Ваш ход")
 
 
 def check_end_of_tic_tac_toe(field):
@@ -22,7 +25,7 @@ def check_end_of_tic_tac_toe(field):
         if i[0] == i[1] == i[2] != "  ":
             return True
     for i in range(3):
-        if field[0][i] == field[1][i] == field[1][i] != "  ":
+        if field[0][i] == field[1][i] == field[2][i] != "  ":
             return True
     if field[0][0] == field[1][1] == field[2][2] != "  ":
         return True
@@ -31,12 +34,21 @@ def check_end_of_tic_tac_toe(field):
     return False
 
 
-def board(field):
+def board(field, user):
     size = 60
     new_image = Image.new("RGB", (3 * size, 3 * size), (255, 255, 255))
     draw = ImageDraw.Draw(new_image)
-    for i in field:
-        for j in i:
+    for i1, i in enumerate(field):
+        for j1, j in enumerate(i):
             if j == "x":
-                draw.line((i, 0, i, 200), fill=(r, g, b), width=1)
-    new_image.save('res.png', "PNG")
+                draw.line((j1 * size, i1 * size, (j1 + 1) * size, (i1 + 1) * size), fill=(255, 0, 0), width=4)
+                draw.line((j1 * size, (i1 + 1) * size, (j1 + 1) * size, i1 * size), fill=(255, 0, 0), width=4)
+            if j == "o":
+                draw.ellipse(
+                    (j1 * size + 3, i1 * size + 3, (j1 + 1) * size - 2, (i1 + 1) * size - 2),
+                    fill=(255, 255, 255), outline=(0, 0, 255), width=4)
+    for i in range(4):
+        draw.line(((i + 1) * 60, 0, (i + 1) * 60, 180), fill=(0, 0, 0), width=2)
+    for i in range(4):
+        draw.line((0, (i + 1) * 60, 180, (i + 1) * 60), fill=(0, 0, 0), width=2)
+    new_image.save(f'{user}.png', "PNG")
