@@ -137,10 +137,10 @@ async def tic_tac_toe_message(update, context):
             field[int(text[0]) - 1][int(text[1]) - 1] = "x"
         else:
             await update.message.reply_text("Данное поле уже занято")
-            return 0
+            return 1
     except Exception:
         await update.message.reply_text("Вы ввели поле в неправильном формате или поле уже занято")
-        return 0
+        return 1
     await update.message.reply_text("Ваш ход",
                                     reply_markup=tic_tac_toe_markup)
     board(field, update.message.from_user)
