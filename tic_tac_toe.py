@@ -60,7 +60,7 @@ async def tic_tac_toe_online(update, context):
 
     else:
         POOL.append(user_id)
-        await update.message.reply_text('Мы сообщим, когда найдем вам пару.', )
+        await update.message.reply_text('Мы сообщим, когда найдем вам пару.', reply_markup=exit_markup)
     return 1
 
 
@@ -210,5 +210,7 @@ def board(field, user):
 
 async def tic_tac_toe_exit(update, context):
     await update.message.reply_text('Вышли из крестиков ноликов', reply_markup=start_markup)
+    if update.message.chat_id in POOL:
+        POOL.remove(update.message.chat_id)
     context.user_data.clear()
     return ConversationHandler.END
