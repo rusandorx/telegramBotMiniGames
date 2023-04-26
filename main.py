@@ -90,7 +90,7 @@ async def mini_games(update, context):
         if text == context.user_data["game"][1]:
             await update.message.reply_text("Вы угадали", reply_markup=start_markup)
         else:
-            await update.message.reply_text(f"Вы не угадали это{context.user_data['game'][1]}", reply_markup=start_markup)
+            await update.message.reply_text(f"Вы не угадали это {context.user_data['game'][1]}", reply_markup=start_markup)
 
 
 def main():
