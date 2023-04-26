@@ -84,10 +84,10 @@ async def tic_tac_toe_online_message(update, context):
             field[int(text[0]) - 1][int(text[1]) - 1] = game['turn']
         else:
             await update.message.reply_text("Данное поле уже занято")
-            return 0
+            return 1
     except Exception:
         await update.message.reply_text("Вы ввели поле в неправильном формате или поле уже занято")
-        return 0
+        return 1
 
     board(field, update.message.from_user)
     await context.bot.send_photo(
