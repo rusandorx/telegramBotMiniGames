@@ -5,13 +5,11 @@ from telegram.ext import Application, MessageHandler, filters, ConversationHandl
 from telegram.ext import CommandHandler
 
 from config import BOT_TOKEN
-from guess_city import guess_city, guess_city_message
-from tic_tac_toe import tic_tac_toe, tic_tac_toe_online, tic_tac_toe_exit, \
-    tic_tac_toe_message, tic_tac_toe_online_message
-from data import db_session
-
 from guess_city import guess_city
-from tic_tac_toe import tic_tac_toe, check_end_of_tic_tac_toe, board
+from guess_city import guess_city_message
+from tic_tac_toe import tic_tac_toe
+from tic_tac_toe import tic_tac_toe_online, tic_tac_toe_exit, \
+    tic_tac_toe_message, tic_tac_toe_online_message
 from wordle import wordle, wordle_answer, wordle_difficulty, wordle_exit
 
 logging.basicConfig(
@@ -20,7 +18,8 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-start_keyboard = [['/tic_tac_toe Крестики нолики', '/wordle Wordle', '/guess_city Угадай город', '/tic_tac_toe_online ']]
+start_keyboard = [
+    ['/tic_tac_toe Крестики нолики', '/wordle Wordle', '/guess_city Угадай город', '/tic_tac_toe_online ']]
 start_markup = ReplyKeyboardMarkup(start_keyboard, one_time_keyboard=True)
 
 
@@ -60,7 +59,8 @@ def main():
         entry_points=[CommandHandler('tic_tac_toe_online', tic_tac_toe_online)],
 
         states={
-            1: [MessageHandler(filters.TEXT & ~filters.COMMAND, tic_tac_toe_online_message)]
+            1: [MessageHandler(filters.TEXT & ~filters.COMMAND, tic_tac_toe_online_message),
+                CommandHandler('start_again', tic_tac_toe_online)]
         },
         fallbacks=[CommandHandler('exit', tic_tac_toe_exit)]
     ))
@@ -68,12 +68,11 @@ def main():
     application.add_handler(ConversationHandler(
         entry_points=[CommandHandler('guess_city', guess_city)],
         states={
-            1: [MessageHandler(filters.TEXT & ~filters.COMMAND, guess_city_message)]
+            1: [MessageHandler(filters.TEXT & ~filters.COMMAND, guess_city_message), ]
         },
         fallbacks=[]
     ))
     application.run_polling()
-
 
 if __name__ == '__main__':
     main()

@@ -4,11 +4,18 @@ from PIL import Image, ImageDraw
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import ConversationHandler
 
+start_keyboard = [
+    ['/tic_tac_toe Крестики нолики', '/wordle Wordle', '/guess_city Угадай город', '/tic_tac_toe_online ']]
+start_markup = ReplyKeyboardMarkup(start_keyboard, one_time_keyboard=True)
+
 tic_tac_toe_field_keyboard = [["1_1  ", "1_2  ", "1_3  "],
                               ["2_1  ", "2_2  ", "2_3  "],
                               ["3_1  ", "3_2  ", "3_3  "]]
 
-tic_tac_toe_markup = ReplyKeyboardMarkup(tic_tac_toe_field_keyboard, one_time_keyboard=True)
+tic_tac_toe_markup = ReplyKeyboardMarkup(tic_tac_toe_field_keyboard, one_time_keyboard=False)
+
+exit_keyboard = [['/start_again', '/exit']]
+exit_markup = ReplyKeyboardMarkup(exit_keyboard, one_time_keyboard=True)
 
 POOL = []
 GAMES = {}
@@ -61,13 +68,15 @@ async def tic_tac_toe_online_message(update, context):
     update.message.reply_text('Online message')
     user_id = update.message.from_user['id']
     game = GAMES[user_id]
+    field = game['board']
     match = tuple(filter(lambda x: x != user_id, game['users']))[0]
     user_symb = 'x' if game['x'] == user_id else 'o'
+    if check_end_of_tic_tac_toe(field):
+        return 1
     if user_symb != game['turn']:
         await update.message.reply_text('Не ваш ход.')
         return 1
 
-    field = game['board']
     text = update.message.text
     try:
         text = text[0:3].split("_")
@@ -93,8 +102,9 @@ async def tic_tac_toe_online_message(update, context):
     game['turn'] = 'x' if game['turn'] == 'o' else 'o'
 
     if check_end_of_tic_tac_toe(field):
-        await update.message.reply_text("Вы победили")
-        return ConversationHandler.END
+        await update.message.reply_text("Вы победили", reply_markup=exit_markup)
+        await context.bot.send_message(match, 'Вы проиграли', reply_markup=exit_markup)
+        context.user_data.clear()
 
     draw = 0
     for i in range(len(field)):
@@ -103,15 +113,12 @@ async def tic_tac_toe_online_message(update, context):
                 draw += 1
 
     if draw == 0:
-        await update.message.reply_text("Ничья")
-        await tic_tac_toe(update, context)
-        return
-
-    if check_end_of_tic_tac_toe(field):
-        await update.message.reply_text("Соперник победил")
-        await tic_tac_toe(update, context)
+        await update.message.reply_text("Ничья", reply_markup=exit_markup)
+        await context.bot.send_message(match, 'Ничья', reply_markup=exit_markup)
+        context.user_data.clear()
 
     return 1
+
 
 async def tic_tac_toe_message(update, context):
     field = context.user_data["game"][1]
@@ -166,6 +173,7 @@ async def tic_tac_toe_message(update, context):
         return ConversationHandler.END
     return 1
 
+
 def check_end_of_tic_tac_toe(field):
     for i in field:
         if i[0] == i[1] == i[2] != "  ":
@@ -201,6 +209,6 @@ def board(field, user):
 
 
 async def tic_tac_toe_exit(update, context):
+    await update.message.reply_text('Вышли из крестиков ноликов', reply_markup=start_markup)
     context.user_data.clear()
-    POOL.remove(update.message.from_user['id'])
     return ConversationHandler.END
