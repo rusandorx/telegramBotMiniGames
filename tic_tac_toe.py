@@ -1,3 +1,4 @@
+import os
 from random import choice, randint
 
 from PIL import Image, ImageDraw
@@ -35,6 +36,8 @@ async def tic_tac_toe(update, context):
         f"{update.message.from_user}.png",
         caption='Вы играете крестиками, а бот ноликами.'
     )
+    os.remove(f'{update.message.from_user}.png')
+
 
     await update.message.reply_text("Ваш ход",
                                     reply_markup=tic_tac_toe_markup)
@@ -101,6 +104,8 @@ async def tic_tac_toe_online_message(update, context):
         match,
         f"{update.message.from_user}.png"
     )
+    os.remove(f'{update.message.from_user}.png')
+
 
     game['turn'] = 'x' if game['turn'] == 'o' else 'o'
 
@@ -143,6 +148,8 @@ async def tic_tac_toe_message(update, context):
         update.message.chat_id,
         f"{update.message.from_user}.png"
     )
+    os.remove(f'{update.message.from_user}.png')
+
     if check_end_of_tic_tac_toe(field):
         await update.message.reply_text("Вы победили")
         await tic_tac_toe(update, context)
@@ -170,6 +177,7 @@ async def tic_tac_toe_message(update, context):
         update.message.chat_id,
         f"{update.message.from_user}.png"
     )
+    os.remove(f'{update.message.from_user}.png')
     if check_end_of_tic_tac_toe(field):
         await update.message.reply_text("Бот победил")
         await tic_tac_toe(update, context)
