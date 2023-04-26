@@ -45,6 +45,9 @@ async def wordle_difficulty(update, context):
         r = Wordnik()
         context.user_data['wordle_word'] = r.get_random_word(minLength=context.user_data["difficulty"][0],
                                                              maxLength=context.user_data["difficulty"][1])
+        while not context.user_data['wordle_word']:
+            context.user_data['wordle_word'] = r.get_random_word(minLength=context.user_data["difficulty"][0],
+                                                                 maxLength=context.user_data["difficulty"][1])
         context.user_data['wordle_tries'] = []
         await update.message.reply_text(
             f'Wordle: слово {len(context.user_data["wordle_word"])} букв. {context.user_data["difficulty"][2]} попыток',
