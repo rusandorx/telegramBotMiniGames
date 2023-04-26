@@ -1,8 +1,14 @@
 from random import randint, choice, uniform
 import requests
+from telegram import ReplyKeyboardMarkup
+from telegram.ext import ConversationHandler
 
 from data import db_session
 from data.cities import City
+
+start_keyboard = [
+    ['/tic_tac_toe Крестики нолики', '/wordle Wordle', '/guess_city Угадай город', '/tic_tac_toe_online ']]
+start_markup = ReplyKeyboardMarkup(start_keyboard, one_time_keyboard=True)
 
 
 def get_random_spot(toponym):
@@ -66,3 +72,13 @@ async def guess_city(update, context):
         get_city(s.city),
         caption=f'Население города {s.population}. Пишите название города на английском языке.'
     )
+    return 1
+
+
+async def guess_city_message(update, context):
+    text = update.message.text
+    if text == context.user_data["game"][1]:
+        await update.message.reply_text("Вы угадали", reply_markup=start_markup)
+    else:
+        await update.message.reply_text(f"Вы не угадали это {context.user_data['game'][1]}.", reply_markup=start_markup)
+    return ConversationHandler.END

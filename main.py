@@ -5,7 +5,7 @@ from telegram.ext import Application, MessageHandler, filters, ConversationHandl
 from telegram.ext import CommandHandler
 
 from config import BOT_TOKEN
-from guess_sity import guess_sity, guess_city_message
+from guess_city import guess_city, guess_city_message
 from tic_tac_toe import tic_tac_toe, tic_tac_toe_online, tic_tac_toe_exit, \
     tic_tac_toe_message, tic_tac_toe_online_message
 from data import db_session
@@ -66,7 +66,7 @@ def main():
     ))
 
     application.add_handler(ConversationHandler(
-        entry_points=[CommandHandler('guess_city', guess_sity)],
+        entry_points=[CommandHandler('guess_city', guess_city)],
         states={
             1: [MessageHandler(filters.TEXT & ~filters.COMMAND, guess_city_message)]
         },
