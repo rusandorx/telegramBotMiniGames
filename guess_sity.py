@@ -1,5 +1,10 @@
 from random import randint
+
 import requests
+from telegram import ReplyKeyboardMarkup
+
+start_keyboard = [['/tic_tac_toe Крестики нолики', '/wordle Wordle', '/guess_sity Угадай город']]
+start_markup = ReplyKeyboardMarkup(start_keyboard, one_time_keyboard=True)
 
 
 def get_sity(sity):
@@ -51,3 +56,11 @@ async def guess_sity(update, context):
         update.message.chat_id,
         get_sity(s),
     )
+
+
+async def guess_city_message(update, context):
+    text = update.message.text
+    if text == "Москва":
+        await update.message.reply_text("Вы угадали", reply_markup=start_markup)
+    else:
+        await update.message.reply_text("Вы не угадали", reply_markup=start_markup)

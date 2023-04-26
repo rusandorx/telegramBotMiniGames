@@ -1,24 +1,170 @@
+from random import choice, randint
+
 from PIL import Image, ImageDraw
 from telegram import ReplyKeyboardMarkup
+from telegram.ext import ConversationHandler
+
+tic_tac_toe_field_keyboard = [["1_1  ", "1_2  ", "1_3  "],
+                              ["2_1  ", "2_2  ", "2_3  "],
+                              ["3_1  ", "3_2  ", "3_3  "]]
+
+tic_tac_toe_markup = ReplyKeyboardMarkup(tic_tac_toe_field_keyboard, one_time_keyboard=True)
+
+POOL = []
+GAMES = {}
 
 
 async def tic_tac_toe(update, context):
     context.user_data["game"] = ["tic_tac_toe"]
+
     s = [["  ", "  ", "  "], ["  ", "  ", "  "], ["  ", "  ", "  "]]
     context.user_data["game"].append(s)
-    tic_tac_toe_field_keyboard = [["1_1  ", "1_2  ", "1_3  "],
-                                  ["2_1  ", "2_2  ", "2_3  "],
-                                  ["3_1  ", "3_2  ", "3_3  "]]
-    tic_tac_toe_markup = ReplyKeyboardMarkup(tic_tac_toe_field_keyboard, one_time_keyboard=True)
     board(s, update.message.from_user)
     await context.bot.send_photo(
         update.message.chat_id,
         f"{update.message.from_user}.png",
         caption='Вы играете крестиками, а бот ноликами.'
     )
+
     await update.message.reply_text("Ваш ход",
                                     reply_markup=tic_tac_toe_markup)
 
+    return 1
+
+
+async def tic_tac_toe_online(update, context):
+    user_id = update.message.from_user['id']
+    if user_id in POOL:
+        return await context.bot.send_message(user_id, 'Вы уже в очереди', reply_markup=tic_tac_toe_markup)
+    if POOL:
+        s = [["  ", "  ", "  "], ["  ", "  ", "  "], ["  ", "  ", "  "]]
+        match = POOL.pop()
+        board(s, user_id)
+        x = choice((user_id, match))
+        o = user_id if x == match else match
+
+        game = {'users': (user_id, match), 'x': x, 'o': o, 'turn': 'x', 'board': s}
+        GAMES[o] = GAMES[x] = game
+
+        await context.bot.send_message(match, f'Пара найдена. Вы - {"x" if game["x"] == match else "0"}',
+                                       reply_markup=tic_tac_toe_markup)
+        await context.bot.send_message(user_id, f'Пара найдена. Вы - {"x" if game["x"] == user_id else "0"}',
+                                       reply_markup=tic_tac_toe_markup)
+
+    else:
+        POOL.append(user_id)
+        await update.message.reply_text('Мы сообщим, когда найдем вам пару.', )
+    return 1
+
+
+async def tic_tac_toe_online_message(update, context):
+    update.message.reply_text('Online message')
+    user_id = update.message.from_user['id']
+    game = GAMES[user_id]
+    match = tuple(filter(lambda x: x != user_id, game['users']))[0]
+    user_symb = 'x' if game['x'] == user_id else 'o'
+    if user_symb != game['turn']:
+        await update.message.reply_text('Не ваш ход.')
+        return 1
+
+    field = game['board']
+    text = update.message.text
+    try:
+        text = text[0:3].split("_")
+        if field[int(text[0]) - 1][int(text[1]) - 1] == "  ":
+            field[int(text[0]) - 1][int(text[1]) - 1] = game['turn']
+        else:
+            await update.message.reply_text("Данное поле уже занято")
+            return 0
+    except Exception:
+        await update.message.reply_text("Вы ввели поле в неправильном формате или поле уже занято")
+        return 0
+
+    board(field, update.message.from_user)
+    await context.bot.send_photo(
+        user_id,
+        f"{update.message.from_user}.png"
+    )
+    await context.bot.send_photo(
+        match,
+        f"{update.message.from_user}.png"
+    )
+
+    game['turn'] = 'x' if game['turn'] == 'o' else 'o'
+
+    if check_end_of_tic_tac_toe(field):
+        await update.message.reply_text("Вы победили")
+        return ConversationHandler.END
+
+    draw = 0
+    for i in range(len(field)):
+        for j in range(len(field)):
+            if field[i][j] == "  ":
+                draw += 1
+
+    if draw == 0:
+        await update.message.reply_text("Ничья")
+        await tic_tac_toe(update, context)
+        return
+
+    if check_end_of_tic_tac_toe(field):
+        await update.message.reply_text("Соперник победил")
+        await tic_tac_toe(update, context)
+
+    return 1
+
+async def tic_tac_toe_message(update, context):
+    field = context.user_data["game"][1]
+    text = update.message.text
+    try:
+        text = text[0:3].split("_")
+        if field[int(text[0]) - 1][int(text[1]) - 1] == "  ":
+            field[int(text[0]) - 1][int(text[1]) - 1] = "x"
+        else:
+            await update.message.reply_text("Данное поле уже занято")
+            return 0
+    except Exception:
+        await update.message.reply_text("Вы ввели поле в неправильном формате или поле уже занято")
+        return 0
+    await update.message.reply_text("Ваш ход",
+                                    reply_markup=tic_tac_toe_markup)
+    board(field, update.message.from_user)
+    await context.bot.send_photo(
+        update.message.chat_id,
+        f"{update.message.from_user}.png"
+    )
+    if check_end_of_tic_tac_toe(field):
+        await update.message.reply_text("Вы победили")
+        await tic_tac_toe(update, context)
+        return ConversationHandler.END
+    draw = 0
+    for i in range(len(field)):
+        for j in range(len(field)):
+            if field[i][j] == "  ":
+                draw += 1
+    if draw == 0:
+        await update.message.reply_text("Ничья")
+        await tic_tac_toe(update, context)
+        return ConversationHandler.END
+    Ai_tic_tac_toe = []
+    for i in range(len(field)):
+        for j in range(len(field)):
+            if field[i][j] == "  ":
+                Ai_tic_tac_toe.append(i * 3 + j)
+    s = Ai_tic_tac_toe[randint(0, len(Ai_tic_tac_toe) - 1)]
+    field[s // 3][s % 3] = "o"
+    await update.message.reply_text("Ход бота",
+                                    reply_markup=tic_tac_toe_markup)
+    board(field, update.message.from_user)
+    await context.bot.send_photo(
+        update.message.chat_id,
+        f"{update.message.from_user}.png"
+    )
+    if check_end_of_tic_tac_toe(field):
+        await update.message.reply_text("Бот победил")
+        await tic_tac_toe(update, context)
+        return ConversationHandler.END
+    return 1
 
 def check_end_of_tic_tac_toe(field):
     for i in field:
@@ -52,3 +198,9 @@ def board(field, user):
     for i in range(4):
         draw.line((0, (i + 1) * 60, 180, (i + 1) * 60), fill=(0, 0, 0), width=2)
     new_image.save(f'{user}.png', "PNG")
+
+
+async def tic_tac_toe_exit(update, context):
+    context.user_data.clear()
+    POOL.remove(update.message.from_user['id'])
+    return ConversationHandler.END
