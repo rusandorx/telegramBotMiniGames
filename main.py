@@ -6,8 +6,9 @@ from telegram.ext import Application, MessageHandler, filters, ConversationHandl
 from telegram.ext import CommandHandler
 
 from config import BOT_TOKEN
+from data import db_session
 
-from guess_sity import guess_sity
+from guess_city import guess_city
 from tic_tac_toe import tic_tac_toe, check_end_of_tic_tac_toe, board
 from wordle import wordle, wordle_answer, wordle_difficulty, wordle_exit
 
@@ -17,7 +18,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-start_keyboard = [['/tic_tac_toe Крестики нолики', '/wordle Wordle', '/guess_sity Угадай город']]
+start_keyboard = [['/tic_tac_toe Крестики нолики', '/wordle Wordle', '/guess_city Угадай город']]
 start_markup = ReplyKeyboardMarkup(start_keyboard, one_time_keyboard=True)
 
 
@@ -84,19 +85,19 @@ async def mini_games(update, context):
         if check_end_of_tic_tac_toe(field):
             await update.message.reply_text("Бот победил")
             await tic_tac_toe(update, context)
-    if context.user_data["game"][0] == "guess_sity":
+    if context.user_data["game"][0] == "guess_city":
         text = update.message.text
-        if text == "Москва":
+        if text == context.user_data["game"][1]:
             await update.message.reply_text("Вы угадали", reply_markup=start_markup)
         else:
-            await update.message.reply_text("Вы не угадали", reply_markup=start_markup)
+            await update.message.reply_text(f"Вы не угадали это{context.user_data['game'][1]}", reply_markup=start_markup)
 
 
 def main():
     application = Application.builder().token(BOT_TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("tic_tac_toe", tic_tac_toe))
-    application.add_handler(CommandHandler("guess_sity", guess_sity))
+    application.add_handler(CommandHandler("guess_city", guess_city))
     application.add_handler(ConversationHandler(
         entry_points=[CommandHandler('wordle', wordle)],
 
