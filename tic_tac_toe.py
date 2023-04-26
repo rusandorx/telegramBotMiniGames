@@ -17,6 +17,9 @@ tic_tac_toe_markup = ReplyKeyboardMarkup(tic_tac_toe_field_keyboard, one_time_ke
 exit_keyboard = [['/start_again', '/exit']]
 exit_markup = ReplyKeyboardMarkup(exit_keyboard, one_time_keyboard=True)
 
+only_exit_keyboard = [['/exit']]
+only_exit_markup = ReplyKeyboardMarkup(only_exit_keyboard, one_time_keyboard=True)
+
 POOL = []
 GAMES = {}
 
@@ -60,7 +63,7 @@ async def tic_tac_toe_online(update, context):
 
     else:
         POOL.append(user_id)
-        await update.message.reply_text('Мы сообщим, когда найдем вам пару.', reply_markup=exit_markup)
+        await update.message.reply_text('Мы сообщим, когда найдем вам пару.', reply_markup=only_exit_markup)
     return 1
 
 
